@@ -141,33 +141,45 @@ func (cli *StreamClient) processLoop() {
 		return
 	}
 
+	// 用 context 替代 closeChan 作为关闭信号：cancelLoop() 可被多个 goroutine 并发安全地重复调用，
+	// 而向已关闭的 channel 发送会 panic，是原始实现竞态问题的根本原因。
+	loopCtx, cancelLoop := context.WithCancel(context.Background())
+	defer cancelLoop()
+
 	readChan := make(chan []byte)
-	pongChan := make(chan struct{})
-	closeChan := make(chan struct{})
-	defer func() { close(closeChan) }()
-	defer func() { close(pongChan) }()
-	defer func() { close(readChan) }()
+	// 容量为 1：pong handler 由 WebSocket 库在读 goroutine 内同步调用，无缓冲会导致其阻塞
+	// 读 goroutine，使后续消息无法接收，直到 ping goroutine 就绪。
+	pongChan := make(chan struct{}, 1)
 
 	cli.conn.SetPongHandler(func(appData string) error {
-		pongChan <- struct{}{}
+		select {
+		case pongChan <- struct{}{}:
+		case <-loopCtx.Done():
+		}
 		return nil
 	})
-	//开始启动协程读数据
+
+	// 读消息 goroutine，退出时关闭 readChan 通知主循环
 	go func() {
+		defer close(readChan)
 		for {
 			messageType, message, err := cli.conn.ReadMessage()
 			if err != nil {
 				logger.GetLogger().Errorf("connection process read message error: messageType=[%d] message=[%s] error=[%s]", messageType, string(message), err)
-				closeChan <- struct{}{}
+				cancelLoop()
 				return
 			}
 			if messageType == websocket.TextMessage {
-				readChan <- message
+				select {
+				case readChan <- message:
+				case <-loopCtx.Done():
+					return
+				}
 			}
 		}
 	}()
 
-	//循环处理事件
+	// 主事件循环
 	for {
 		timer := time.NewTimer(cli.keepAliveIdle)
 		select {
@@ -191,11 +203,14 @@ func (cli *StreamClient) processLoop() {
 					return
 				case <-time.After(5 * time.Second):
 					logger.GetLogger().Errorf("ping time out, connection is closing")
-					closeChan <- struct{}{}
+					cancelLoop()
+					return
+				case <-loopCtx.Done():
 					return
 				}
 			}()
-		case <-closeChan:
+		case <-loopCtx.Done():
+			timer.Stop()
 			return
 		}
 	}
