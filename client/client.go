@@ -38,6 +38,9 @@ type StreamClient struct {
 	conn          *websocket.Conn
 	sessionId     string
 	mutex         sync.Mutex
+	// writeMu 保护 conn 的并发写操作：gorilla/websocket 不支持并发写，
+	// processDataFrame 和 processLoop 的 ping 可能同时触发写。
+	writeMu       sync.Mutex
 	extras        map[string]string
 	openApiHost   string
 	proxy         string
@@ -192,7 +195,9 @@ func (cli *StreamClient) processLoop() {
 				return
 			}
 		case <-timer.C:
+			cli.writeMu.Lock()
 			e := cli.conn.WriteMessage(websocket.PingMessage, nil)
+			cli.writeMu.Unlock()
 			if e != nil {
 				logger.GetLogger().Errorf("connection write ping message error: error=[%s]", e)
 				return
@@ -470,6 +475,8 @@ func (cli *StreamClient) SendDataFrameResponse(ctx context.Context, resp *payloa
 		logger.GetLogger().Errorf("SendDataFrameResponse error, conn nil, maybe disconnected.")
 		return errors.New("disconnected")
 	}
+	cli.writeMu.Lock()
+	defer cli.writeMu.Unlock()
 	return cli.conn.WriteJSON(resp)
 }
 
