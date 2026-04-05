@@ -4,14 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/card"
+	"github.com/memohai/dingtalk-stream-sdk-go/card"
 
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/chatbot"
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/client"
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/event"
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/logger"
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/payload"
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/plugin"
+	"github.com/memohai/dingtalk-stream-sdk-go/chatbot"
+	"github.com/memohai/dingtalk-stream-sdk-go/client"
+	"github.com/memohai/dingtalk-stream-sdk-go/event"
+	"github.com/memohai/dingtalk-stream-sdk-go/logger"
+	"github.com/memohai/dingtalk-stream-sdk-go/payload"
+	"github.com/memohai/dingtalk-stream-sdk-go/plugin"
 )
 
 /**

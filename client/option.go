@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/handler"
+	"github.com/memohai/dingtalk-stream-sdk-go/handler"
 	"time"
 )
 

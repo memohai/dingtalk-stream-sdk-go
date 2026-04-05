@@ -1,4 +1,4 @@
-module github.com/open-dingtalk/dingtalk-stream-sdk-go
+module github.com/memohai/dingtalk-stream-sdk-go
 
 go 1.18
 

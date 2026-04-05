@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/payload"
-	"github.com/open-dingtalk/dingtalk-stream-sdk-go/utils"
+	"github.com/memohai/dingtalk-stream-sdk-go/payload"
+	"github.com/memohai/dingtalk-stream-sdk-go/utils"
 )
 
 /**
