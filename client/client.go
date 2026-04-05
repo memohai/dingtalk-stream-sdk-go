@@ -295,7 +295,7 @@ func (cli *StreamClient) Close() {
 func (cli *StreamClient) reconnect() {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.GetLogger().Errorf("reconect panic due to unknown reason. error=[%s]", err)
+			logger.GetLogger().Errorf("reconnect panic due to unknown reason. error=[%s]", err)
 		}
 	}()
 
